@@ -5790,12 +5790,12 @@ wheels = [
 
 [package.optional-dependencies]
 standard = [
-    { name = "httptools", marker = "python_full_version < '3.12'" },
-    { name = "python-dotenv", marker = "python_full_version < '3.12'" },
-    { name = "pyyaml", marker = "python_full_version < '3.12'" },
-    { name = "uvloop", marker = "python_full_version < '3.12' and platform_python_implementation != 'PyPy' and sys_platform != 'cygwin' and sys_platform != 'win32'" },
-    { name = "watchfiles", marker = "python_full_version < '3.12'" },
-    { name = "websockets", marker = "python_full_version < '3.12'" },
+    { name = "httptools" },
+    { name = "python-dotenv" },
+    { name = "pyyaml" },
+    { name = "uvloop", marker = "platform_python_implementation != 'PyPy' and sys_platform != 'cygwin' and sys_platform != 'win32'" },
+    { name = "watchfiles" },
+    { name = "websockets" },
 ]
 
 [[package]]
@@ -5841,7 +5841,10 @@ name = "veritas-engine"
 version = "0.0.0"
 source = { editable = "." }
 dependencies = [
+    { name = "fastapi" },
     { name = "google-adk", extra = ["extensions"] },
+    { name = "httpx" },
+    { name = "uvicorn", extra = ["standard"] },
 ]
 
 [package.dev-dependencies]
@@ -5853,7 +5856,12 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "google-adk", extras = ["extensions"], specifier = ">=2.5.0,<3" }]
+requires-dist = [
+    { name = "fastapi", specifier = ">=0.140.13" },
+    { name = "google-adk", extras = ["extensions"], specifier = ">=2.5.0,<3" },
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "uvicorn", extras = ["standard"], specifier = ">=0.51.0" },
+]
 
 [package.metadata.requires-dev]
 dev = [
@@ -5895,7 +5903,7 @@ name = "watchfiles"
 version = "1.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "anyio", marker = "python_full_version < '3.12'" },
+    { name = "anyio" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/cd/41/5e1a4bb12aac5f1493fa1bdc11154eca3b258ca4eba65d39c473fe19d8e9/watchfiles-1.2.0.tar.gz", hash = "sha256:c995fba777f1ea992f090f9236e9284cf7a5d1a0130dd5a3d82c598cacd76838", size = 108252, upload-time = "2026-05-18T04:32:04.251Z" }
 wheels = [

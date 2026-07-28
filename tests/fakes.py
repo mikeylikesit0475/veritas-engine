@@ -17,10 +17,21 @@ __all__ = ["FakeToolContext"]
 
 
 class FakeToolContext:
-    """Just enough ``ToolContext`` for tool unit tests: a ``state`` dict."""
+    """Just enough ``ToolContext`` for tool unit tests: a ``state`` dict.
 
-    def __init__(self, state: dict[str, Any] | None = None) -> None:
+    Also carries an ``app_name`` so graph nodes that look up backends from the
+    app-level registry work in tests (register fakes with
+    :func:`veritas.server.backends_registry.register_backends`).
+    """
+
+    def __init__(
+        self,
+        state: dict[str, Any] | None = None,
+        *,
+        app_name: str = "veritas",
+    ) -> None:
         self.state: dict[str, Any] = dict(state or {})
+        self.app_name = app_name
 
     def __repr__(self) -> str:
-        return f"FakeToolContext(state={self.state!r})"
+        return f"FakeToolContext(app_name={self.app_name!r}, state={self.state!r})"

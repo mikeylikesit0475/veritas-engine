@@ -9,7 +9,10 @@ authors = [{ name = "Michael F" }]
 # Sprint 0.2: ADK + LiteLLM (Ollama bridge). Pinned per ADR-001 — upstream API
 # changes are wrapped at the veritas/graph boundary.
 dependencies = [
+    "fastapi>=0.140.13",
     "google-adk[extensions]>=2.5.0,<3",
+    "httpx>=0.28.1",
+    "uvicorn[standard]>=0.51.0",
 ]
 
 [dependency-groups]
