@@ -29,7 +29,7 @@ pytestmark = [
 
 # The fixtures this test replays. Each must exist in evals/fixtures/.
 # Sprint 0.6 has one; Sprint 1.7 adds more before the swarm gets expensive.
-FIXTURE_NAMES = ["eiffel_berlin"]
+FIXTURE_NAMES = ["eiffel_berlin", "great_wall_space"]
 
 
 @pytest.mark.parametrize("fixture_name", FIXTURE_NAMES)
