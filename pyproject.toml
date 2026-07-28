@@ -6,8 +6,11 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [{ name = "Michael F" }]
-# No runtime deps yet — ADK lands in Sprint 0.2.
-dependencies = []
+# Sprint 0.2: ADK + LiteLLM (Ollama bridge). Pinned per ADR-001 — upstream API
+# changes are wrapped at the veritas/graph boundary.
+dependencies = [
+    "google-adk[extensions]>=2.5.0,<3",
+]
 
 [dependency-groups]
 dev = [

@@ -116,3 +116,64 @@ local path still earns its place in the README as a measured cost story.
 different persistence choices rather than looking copy-pasted, and Postgres is the answer
 an enterprise interviewer expects for a multi-writer session store. The `SessionService`
 interface is the seam, so this is reversible in an afternoon.
+
+---
+
+## ADR-009 — Dual model backend: Ollama default, Gemini optional
+
+**Context.** ADR-004 confines structured output to a Gemini judgement tier, and ADR-007
+makes `VERITAS_FANOUT=gemini` the must-work default. On the dev box, however, there is no
+Gemini API key; the operator runs a substantial Ollama fleet (local MoEs at 50–75 GB plus
+`:cloud` frontier models routed through Ollama: `glm-5.1:cloud`, `kimi-k2.7-code:cloud`,
+`nemotron-3-super:cloud`). Forcing a Gemini key as a hard prerequisite would make the demo
+non-functional on this machine and contradict the "must always work end to end" spirit of
+ADR-007 — the *opposite* of what that ADR intended.
+
+Two concerns from ADR-004 remain real and must be addressed, not waved away:
+
+1. **Structured-output reliability.** The original concern was *local small* models
+   ignoring JSON schema. The `:cloud` Ollama models are frontier-class, but they are not
+   the Gemini API and we have no a priori proof they honour ADK's structured-output
+   contract. ADR-004's mitigation — "schema validation fails loudly, never silently" —
+   still applies and is now *more* important, not less.
+2. **The interview story.** "We measured that local models blow schema, so we confined
+   structured output to Gemini" was a clean claim. Dropping Gemini weakens it. The
+   replacement claim must be honest and falsifiable: "we run local-first; here is what
+   broke and what we did about it."
+
+**Decision.**
+
+- `veritas/models.py` is a factory with two backends, selected by environment:
+  - `VERITAS_JUDGEMENT` — `ollama` (default) | `gemini`
+  - `VERITAS_FANOUT` — `ollama` (default) | `gemini`
+- **Ollama is the default on this machine.** No Gemini key is required to run the demo.
+- **Gemini remains a supported, tested path** — `VERITAS_JUDGEMENT=gemini
+  VERITAS_FANOUT=gemini` must work end to end. The factory never special-cases away the
+  Gemini tier; it only changes the default.
+- ADK's `LiteLlm(model="ollama_chat/<model>")` is the Ollama seam. The judgement tier on
+  Ollama uses a `:cloud` model (e.g. `glm-5.1:cloud` or `kimi-k2.7-code:cloud`); the
+  fan-out tier uses a local model. Model names are config, not code.
+- **ADR-004's invariant is preserved and strengthened:** fan-out agents still never emit
+  structured output. The judgement tier still does, and its schema validation must fail
+  loudly on *either* backend. A regression test (Sprint 1.5 / eval) must exercise a
+  judgement-tier structured-output call on the configured backend and assert the schema
+  holds — or fail the build. If a chosen Ollama model proves unreliable on schema, that
+  is a measured finding recorded in the README, not a silent degradation.
+- **ADR-007 is amended, not superseded:** the "must always work end to end" default is
+  Ollama on this box, Gemini where a key is present. The non-load-bearing principle
+  stands — neither the local hardware nor the NPU may be a demo prerequisite.
+
+**Consequence.**
+
+- The demo runs on this machine today, with no external key. That is the point.
+- We lose the clean "Gemini for schema" story and gain a "local-first, measured trade-offs"
+  story. The eval in Sprint 3 must now include a **structured-output reliability row** in
+  the table (schema-valid rate per backend) so the trade-off is falsifiable. If the local
+  judgement model blows schema at a rate that hurts accuracy, that is a finding worth the
+  README — and possibly grounds to supersede this ADR with a "Gemini judgement tier
+  restored" ADR, with the measurement as evidence.
+- More moving parts in `veritas/models.py`: two backends, env-driven selection, a stub
+  fallback for CI. Wrapped at the `veritas/graph` boundary per ADR-001 so an ADK or
+  LiteLLM upstream change still touches one package.
+- CI invariant unchanged: no live model calls, ever. The stub-model harness (Sprint 0.6)
+  is the only model CI ever sees.
