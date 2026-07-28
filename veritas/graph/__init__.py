@@ -13,14 +13,17 @@ from __future__ import annotations
 
 from veritas.graph.claim_state import ClaimState, ClaimStatus, Verdict, VerdictLabel
 from veritas.graph.decompose import DecomposeResult, SubClaim, decompose
+from veritas.graph.fan_out import AgentFinding, FanOutResult, fan_out
 from veritas.graph.fast_check import FastCheckResult, fast_check
 from veritas.graph.intake import IntakeResult, intake
 from veritas.graph.wiring import build_graph
 
 __all__ = [
+    "AgentFinding",
     "ClaimState",
     "ClaimStatus",
     "DecomposeResult",
+    "FanOutResult",
     "FastCheckResult",
     "IntakeResult",
     "SubClaim",
@@ -28,6 +31,7 @@ __all__ = [
     "VerdictLabel",
     "build_graph",
     "decompose",
+    "fan_out",
     "fast_check",
     "intake",
 ]
