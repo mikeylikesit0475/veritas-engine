@@ -209,7 +209,7 @@ async def fast_check(*, ctx: Context) -> FastCheckResult:
     # Persist the verdict into the claim state (ARCH §7: state is a projection).
     claim_state.verdict = verdict
     claim_state.status = ClaimStatus.FAST_CHECKED
-    ctx.state[CLAIM_STATE_KEY] = claim_state
+    ctx.state[CLAIM_STATE_KEY] = claim_state.model_dump(mode="json")
 
     return FastCheckResult(
         verdict=verdict, query=query, hits=hits, truncated=truncated

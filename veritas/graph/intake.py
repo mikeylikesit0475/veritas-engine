@@ -130,4 +130,4 @@ async def write_claim_state(ctx: object, result: IntakeResult) -> None:
             status=ClaimStatus.REJECTED,
             rejection_reason=result.rejection_reason,
         )
-    state[CLAIM_STATE_KEY] = claim
+    state[CLAIM_STATE_KEY] = claim.model_dump(mode="json")

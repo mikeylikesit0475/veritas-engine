@@ -133,6 +133,6 @@ def loop(*, ctx: Context) -> LoopDirective:
     # Update claim status.
     claim_state = ClaimState.from_state(state_dict)
     claim_state.status = ClaimStatus.LOOPED
-    ctx.state[CLAIM_STATE_KEY] = claim_state
+    ctx.state[CLAIM_STATE_KEY] = claim_state.model_dump(mode="json")
 
     return result_directive

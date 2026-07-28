@@ -155,7 +155,7 @@ async def decompose(*, ctx: Context) -> DecomposeResult:
     # Persist sub-claims into claim state (ARCH §7).
     claim_state.sub_claims = [sc.text for sc in result.sub_claims]
     claim_state.status = ClaimStatus.DECOMPOSED
-    ctx.state[CLAIM_STATE_KEY] = claim_state
+    ctx.state[CLAIM_STATE_KEY] = claim_state.model_dump(mode="json")
 
     # Also store the full SubClaim objects (with ids) under a separate key for
     # the fan-out node to pick up. The plain-text list in ClaimState is the

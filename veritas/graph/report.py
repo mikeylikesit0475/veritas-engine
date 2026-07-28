@@ -238,6 +238,6 @@ async def report(*, ctx: Context) -> ReportResult:
 
     # Update claim status.
     claim_state.status = ClaimStatus.REPORTED
-    ctx.state[CLAIM_STATE_KEY] = claim_state
+    ctx.state[CLAIM_STATE_KEY] = claim_state.model_dump(mode="json")
 
     return result

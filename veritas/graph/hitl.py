@@ -69,7 +69,7 @@ async def hitl_pause(*, ctx: Context) -> dict[str, Any]:
     )
     claim_state = ClaimState.from_state(state_dict)
     claim_state.status = ClaimStatus.HITL_PAUSED
-    ctx.state[CLAIM_STATE_KEY] = claim_state
+    ctx.state[CLAIM_STATE_KEY] = claim_state.model_dump(mode="json")
 
     # The HITL pause is emitted by yielding a request_input event. ADK's runner
     # handles this by suspending execution. The resume comes from the server

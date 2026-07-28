@@ -203,6 +203,6 @@ async def fan_out(*, ctx: Context) -> FanOutResult:
 
     # Update claim status.
     claim_state.status = ClaimStatus.FAN_OUT_DONE
-    ctx.state[CLAIM_STATE_KEY] = claim_state
+    ctx.state[CLAIM_STATE_KEY] = claim_state.model_dump(mode="json")
 
     return result

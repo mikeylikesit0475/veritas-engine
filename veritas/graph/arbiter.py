@@ -201,7 +201,7 @@ async def arbiter(*, ctx: Context) -> ArbiterResult:
     # Persist the overall verdict into claim state (ARCH §7).
     claim_state.verdict = result.overall_verdict
     claim_state.status = ClaimStatus.ARBITERED
-    ctx.state[CLAIM_STATE_KEY] = claim_state
+    ctx.state[CLAIM_STATE_KEY] = claim_state.model_dump(mode="json")
 
     # Store the full arbiter result for the confidence route (2.3).
     ctx.state["veritas.arbiter.result"] = result.model_dump(mode="json")

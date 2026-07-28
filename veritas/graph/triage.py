@@ -140,7 +140,7 @@ async def triage(*, ctx: Context) -> TriageResult:
 
     # Update claim state.
     claim_state.status = ClaimStatus.TRIAGED
-    ctx.state[CLAIM_STATE_KEY] = claim_state
+    ctx.state[CLAIM_STATE_KEY] = claim_state.model_dump(mode="json")
     ctx.state["veritas.triage.result"] = result.model_dump(mode="json")
 
     return result
