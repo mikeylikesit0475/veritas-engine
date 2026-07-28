@@ -151,6 +151,10 @@ def create_app(
 
     @asynccontextmanager
     async def _lifespan(app: FastAPI) -> Any:
+        # Sprint 4.3: OTel traces — spans cover the whole graph.
+        from veritas.telemetry import setup_telemetry
+
+        setup_telemetry()
         try:
             yield
         finally:
