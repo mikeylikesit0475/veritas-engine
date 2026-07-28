@@ -1,0 +1,68 @@
+{
+  "name": "eiffel_berlin",
+  "claim": "The Eiffel Tower is in Berlin.",
+  "search_calls": [
+    {
+      "query": "The Eiffel Tower is in Berlin.",
+      "hits": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Eiffel_Tower",
+          "title": "Eiffel Tower - Wikipedia",
+          "snippet": "The Eiffel Tower (/ ˈaɪfəl / ⓘ EYE-fəl; French: Tour Eiffel [tuʁ ɛfɛl] ⓘ) is a lattice tower on the Champ de Mars in Paris, France. It is named after the engineer Gustave Eiffel, whose company designed and built the tower from 1887 to 1889."
+        },
+        {
+          "url": "https://www.toureiffel.paris/en",
+          "title": "The OFFICIAL Eiffel Tower website: tickets, news, info...",
+          "snippet": "The Eiffel Tower is open in the evening: enjoy a magical visit high above the City of Light in a more relaxed atmosphere. Shorter lines at the ticket counters."
+        },
+        {
+          "url": "https://www.britannica.com/topic/Eiffel-Tower-Paris-France",
+          "title": "Eiffel Tower | History, Height, & Facts | Britannica",
+          "snippet": "Eiffel Tower, wrought-iron structure in Paris that is one of the most famous landmarks in the world. It is also a technological masterpiece in building-construction history. It was designed and built (1887-89) by Gustave Eiffel and named in his honor."
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Fernsehturm_Berlin",
+          "title": "Fernsehturm Berlin - Wikipedia",
+          "snippet": "Fernsehturm Berlin close to Alexanderplatz in Berlin- Mitte The Berlin TV Tower is located southwest of the Alexanderplatz station, east of the St. Mary's Church and northeast of the Marx-Engels Forum. The structure is often erroneously described as being part of the Alexanderplatz that lies to the northeast. In addition to the Berlin U-Bahn and S-Bahn lines, several tram and bus lines stop at ..."
+        },
+        {
+          "url": "https://www.wonders-of-the-world.net/Eiffel-Tower/Repliques/Replicas-of-the-Eiffel-tower-in-Germany.php",
+          "title": "Copies of the Eiffel tower in Germany",
+          "snippet": "Copies, replicas and reproductions of the Eiffel Tower in Germany Berlin Germany has several copies of the Eiffel Tower on its territory. This one is in Berlin, in front of the Center Francais of Berlin, which was an institution of the French Military Government of Berlin, an instrument in the propagation of the French culture in the former French sector of Berlin Now become a hotel, the ..."
+        },
+        {
+          "url": "https://www.toureiffel.paris/en/the-monument/history",
+          "title": "Eiffel Tower history, architecture, design & construction",
+          "snippet": "The tower project was a bold extension of this principle up to a height of 300 metres - equivalent to the symbolic figure of 1000 feet. On September 18 1884 Eiffel registered a patent \"for a new configuration allowing the construction of metal supports and pylons capable of exceeding a height of 300 metres\"."
+        },
+        {
+          "url": "https://www.rome2rio.com/Train/Berlin-Hbf/Eiffel-Tower",
+          "title": "Berlin Hbf to Eiffel Tower Trains | 7-Day Timetable - Rome2rio",
+          "snippet": "Train tickets from Berlin Hbf to Eiffel Tower start at €254, and the quickest route takes just 8h 2m. Check timetables and book your tickets with Rome2Rio."
+        },
+        {
+          "url": "https://www.travelandleisure.com/attractions/landmarks-monuments/eiffel-tower-facts",
+          "title": "16 Eiffel Tower Facts and Secrets - Travel",
+          "snippet": "Uncover 16 fascinating facts about the Eiffel Tower, from its nearly avoided demolition and changing colors to its WWII role and scientific contributions."
+        },
+        {
+          "url": "https://www.riddlesanswer.com/solved-the-eiffel-tower-was-originally-intended-to-stand-in-which-city/",
+          "title": "(Solved) The Eiffel Tower was originally intended to stand in which ...",
+          "snippet": "The Eiffel Tower was originally intended to stand in which city? Vienna Cairo Berlin Barcelona Fact: Before it was built for the 1889 Exposition Universelle in Paris, the Eiffel Tower's design was offered to Barcelona for the 1888 Universal Exposition. However, city officials rejected the proposal, believing the massive iron structure would be too expensive and visually out of place in the ..."
+        }
+      ]
+    }
+  ],
+  "model_calls": [
+    {
+      "prompt_hash": "2bf2bd818f2f1268506e153e0810aa7769c36ef76848bfd873790e145d44e576",
+      "prompt": "You are a fact-checker. Given a claim and up to a few web-search snippets, emit a JSON object with exactly three keys: \"label\" (one of \"true\", \"false\", \"mixed\"), \"confidence\" (a float in [0.0, 1.0]), and \"rationale\" (one short sentence citing the most relevant snippet url). Output only the JSON object — no prose, no markdown fences.\n\nCLAIM: The Eiffel Tower is in Berlin.\n\nSEARCH RESULTS:\n- [Eiffel Tower - Wikipedia](https://en.wikipedia.org/wiki/Eiffel_Tower): The Eiffel Tower (/ ˈaɪfəl / ⓘ EYE-fəl; French: Tour Eiffel [tuʁ ɛfɛl] ⓘ) is a lattice tower on the Champ de Mars in Paris, France. It is named after the engineer Gustave Eiffel, whose company designed and built the tower from 1887 to 1889.\n- [The OFFICIAL Eiffel Tower website: tickets, news, info...](https://www.toureiffel.paris/en): The Eiffel Tower is open in the evening: enjoy a magical visit high above the City of Light in a more relaxed atmosphere. Shorter lines at the ticket counters.\n- [Eiffel Tower | History, Height, & Facts | Britannica](https://www.britannica.com/topic/Eiffel-Tower-Paris-France): Eiffel Tower, wrought-iron structure in Paris that is one of the most famous landmarks in the world. It is also a technological masterpiece in building-construction history. It was designed and built (1887-89) by Gustave Eiffel and named in his honor.\n- [Fernsehturm Berlin - Wikipedia](https://en.wikipedia.org/wiki/Fernsehturm_Berlin): Fernsehturm Berlin close to Alexanderplatz in Berlin- Mitte The Berlin TV Tower is located southwest of the Alexanderplatz station, east of the St. Mary's Church and northeast of the Marx-Engels Forum. The structure is often erroneously described as being part of the Alexanderplatz that lies to the northeast. In addition to the Berlin U-Bahn and S-Bahn lines, several tram and bus lines stop at ...\n- [Copies of the Eiffel tower in Germany](https://www.wonders-of-the-world.net/Eiffel-Tower/Repliques/Replicas-of-the-Eiffel-tower-in-Germany.php): Copies, replicas and reproductions of the Eiffel Tower in Germany Berlin Germany has several copies of the Eiffel Tower on its territory. This one is in Berlin, in front of the Center Francais of Berlin, which was an institution of the French Military Government of Berlin, an instrument in the propagation of the French culture in the former French sector of Berlin Now become a hotel, the ...\n\nJSON verdict:",
+      "response": "{\"label\": \"false\", \"confidence\": 1.0, \"rationale\": \"The Eiffel Tower is located on the Champ de Mars in Paris, France, not Berlin (https://en.wikipedia.org/wiki/Eiffel_Tower).\"}"
+    }
+  ],
+  "verdict": {
+    "label": "false",
+    "confidence": 1.0,
+    "rationale": "The Eiffel Tower is located on the Champ de Mars in Paris, France, not Berlin (https://en.wikipedia.org/wiki/Eiffel_Tower)."
+  }
+}
