@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# CI never calls a live model (CLAUDE.md non-negotiable #6). Evals replay recorded
+# fixtures. The job below has no API key access and asserts that.
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    env:
+      # Belt-and-braces: if any test tries a live call, these should be unset.
+      # ADK/Gemini keys are intentionally NOT provided.
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Sync dependencies
+        run: uv sync --frozen
+
+      - name: Assert no model key is set (CI must be offline-safe)
+        run: |
+          test -z "${GEMINI_API_KEY:-}" || (echo "GEMINI_API_KEY must not be set in CI"; exit 1)
+          test -z "${GOOGLE_API_KEY:-}" || (echo "GOOGLE_API_KEY must not be set in CI"; exit 1)
+
+      - name: Ruff (gate)
+        run: uv run ruff check veritas tests
+
+      - name: Mypy --strict (gate)
+        run: uv run mypy veritas
+
+      - name: Pytest (gate — replays fixtures, no live calls)
+        run: uv run pytest -ra

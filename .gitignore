@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.eggs/
+
+# Tool caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ruff/
+
+# venv
+.venv/
+venv/
+
+# env — never commit keys (ADR: CI never calls a live model)
+.env
+.env.*
+
+# editors
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+
+# Local model / runtime artefacts
+*.gguf
+ollama-modelfile.*
