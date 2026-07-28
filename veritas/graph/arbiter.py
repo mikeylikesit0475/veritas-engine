@@ -40,6 +40,7 @@ from veritas.graph.claim_state import (
 )
 from veritas.graph.fan_out import FANOUT_RESULT_STATE_KEY, AgentFinding
 from veritas.models import Tier, model_for
+from veritas.utils import strip_markdown_fences
 
 __all__ = [
     "ARBITER_MODEL_STATE_KEY",
@@ -157,7 +158,7 @@ async def _structured_arbiter(
         )
 
     try:
-        return ArbiterResult.model_validate_json(raw_text)
+        return ArbiterResult.model_validate_json(strip_markdown_fences(raw_text))
     except ValidationError as e:
         raise ValueError(
             f"arbiter: model did not return schema-valid JSON. "

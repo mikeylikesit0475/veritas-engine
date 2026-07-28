@@ -18,6 +18,8 @@ from veritas.graph.fan_out import AgentFinding, FanOutResult, fan_out
 from veritas.graph.fast_check import FastCheckResult, fast_check
 from veritas.graph.intake import IntakeResult, intake
 from veritas.graph.loop import ConfidenceRoute, LoopDirective, confidence_route, loop
+from veritas.graph.report import ReportResult, report
+from veritas.graph.triage import TriageResult, triage
 from veritas.graph.wiring import build_graph
 
 __all__ = [
@@ -31,8 +33,10 @@ __all__ = [
     "FastCheckResult",
     "IntakeResult",
     "LoopDirective",
+    "ReportResult",
     "SubClaim",
     "SubClaimVerdict",
+    "TriageResult",
     "Verdict",
     "VerdictLabel",
     "arbiter",
@@ -43,4 +47,6 @@ __all__ = [
     "fast_check",
     "intake",
     "loop",
+    "report",
+    "triage",
 ]

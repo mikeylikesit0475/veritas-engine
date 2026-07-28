@@ -17,8 +17,11 @@ from google.genai import types as genai_types
 from veritas.backends_registry import clear_backends, register_backends
 from veritas.eval_harness.backends import ReplayModel, ReplaySearchBackend
 from veritas.eval_harness.fixtures import load_fixture
+from veritas.graph.arbiter import ARBITER_MODEL_STATE_KEY
 from veritas.graph.claim_state import ClaimState, ClaimStatus
+from veritas.graph.decompose import DECOMPOSE_MODEL_STATE_KEY
 from veritas.graph.fast_check import FAST_CHECK_MODEL_STATE_KEY
+from veritas.graph.triage import TRIAGE_MODEL_STATE_KEY
 from veritas.graph.wiring import build_graph
 from veritas.tools.grounded_search import SEARCH_BACKEND_STATE_KEY
 
@@ -44,6 +47,9 @@ async def test_fixture_replays_to_recorded_verdict(fixture_name: str) -> None:
         **{
             SEARCH_BACKEND_STATE_KEY: ReplaySearchBackend(fixture),
             FAST_CHECK_MODEL_STATE_KEY: ReplayModel(fixture),
+            TRIAGE_MODEL_STATE_KEY: ReplayModel(fixture),
+            DECOMPOSE_MODEL_STATE_KEY: ReplayModel(fixture),
+            ARBITER_MODEL_STATE_KEY: ReplayModel(fixture),
         },
     )
 
@@ -77,7 +83,7 @@ async def test_fixture_replays_to_recorded_verdict(fixture_name: str) -> None:
         state_dict = raw_state.to_dict() if hasattr(raw_state, "to_dict") else dict(raw_state)  # type: ignore[union-attr]
         claim_state = ClaimState.from_state(state_dict)
 
-        assert claim_state.status is ClaimStatus.FAST_CHECKED
+        assert claim_state.status is ClaimStatus.REPORTED
         assert claim_state.verdict.label == fixture.verdict.label
         assert claim_state.verdict.confidence == pytest.approx(
             fixture.verdict.confidence, abs=0.01

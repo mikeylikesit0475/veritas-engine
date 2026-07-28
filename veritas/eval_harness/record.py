@@ -23,8 +23,12 @@ from google.genai import types as genai_types
 from veritas.backends_registry import clear_backends, register_backends
 from veritas.eval_harness.backends import RecordingModel, RecordingSearchBackend
 from veritas.eval_harness.fixtures import Fixture, save_fixture
+from veritas.graph.arbiter import ARBITER_MODEL_STATE_KEY
 from veritas.graph.claim_state import ClaimState
+from veritas.graph.decompose import DECOMPOSE_MODEL_STATE_KEY
+from veritas.graph.fan_out import FANOUT_MODEL_STATE_KEY
 from veritas.graph.fast_check import FAST_CHECK_MODEL_STATE_KEY
+from veritas.graph.triage import TRIAGE_MODEL_STATE_KEY
 from veritas.graph.wiring import build_graph
 from veritas.models import Tier, model_for
 from veritas.server.backends import HttpSearchBackend
@@ -40,12 +44,17 @@ async def _record(claim: str, name: str) -> str:
 
     recording_search = RecordingSearchBackend(real_search, fixture)
     recording_model = RecordingModel(real_model, fixture)
+    recording_fanout = RecordingModel(model_for(Tier.FANOUT), fixture)
 
     register_backends(
         "veritas",
         **{
             SEARCH_BACKEND_STATE_KEY: recording_search,
             FAST_CHECK_MODEL_STATE_KEY: recording_model,
+            TRIAGE_MODEL_STATE_KEY: recording_model,
+            DECOMPOSE_MODEL_STATE_KEY: recording_model,
+            ARBITER_MODEL_STATE_KEY: recording_model,
+            FANOUT_MODEL_STATE_KEY: recording_fanout,
         },
     )
 

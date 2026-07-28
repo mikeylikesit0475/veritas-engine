@@ -44,6 +44,7 @@ from veritas.tools.grounded_search import (
     SEARCH_BACKEND_STATE_KEY,
     SEARCH_LOG_STATE_KEY,
 )
+from veritas.utils import strip_markdown_fences
 
 __all__ = ["FAST_CHECK_MODEL_STATE_KEY", "FastCheckResult", "fast_check"]
 
@@ -168,7 +169,7 @@ async def _structured_verdict(
         )
 
     try:
-        return Verdict.model_validate_json(raw_text)
+        return Verdict.model_validate_json(strip_markdown_fences(raw_text))
     except ValidationError as e:
         raise ValueError(
             f"fast_check: model did not return schema-valid JSON verdict. "

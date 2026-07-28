@@ -160,16 +160,20 @@ def render_report(claim_state: ClaimState, arbiter_result: ArbiterResult, store:
     lines.append("## Sub-claim verdicts")
     lines.append("")
 
-    for scv in arbiter_result.sub_claim_verdicts:
-        lines.append(f"### {scv.sub_claim_id}: {scv.label.value} (conf={scv.confidence:.0%})")
-        lines.append(f"{scv.rationale}")
-        # Find citations for this sub-claim.
-        sc_citations = [c for c in store.citations if c.sub_claim_id == scv.sub_claim_id]
-        if sc_citations:
+    if arbiter_result.sub_claim_verdicts:
+        for scv in arbiter_result.sub_claim_verdicts:
+            lines.append(f"### {scv.sub_claim_id}: {scv.label.value} (conf={scv.confidence:.0%})")
+            lines.append(f"{scv.rationale}")
+            # Find citations for this sub-claim.
+            sc_citations = [c for c in store.citations if c.sub_claim_id == scv.sub_claim_id]
+            if sc_citations:
+                lines.append("")
+                lines.append("**Sources:**")
+                for c in sc_citations:
+                    lines.append(f"- [{c.title or c.url}]({c.url}) [cite:{c.id}]")
             lines.append("")
-            lines.append("**Sources:**")
-            for c in sc_citations:
-                lines.append(f"- [{c.title or c.url}]({c.url}) [cite:{c.id}]")
+    else:
+        lines.append("(Fast path — no sub-claim decomposition.)")
         lines.append("")
 
     lines.append("## Citations")
@@ -190,7 +194,12 @@ def render_report(claim_state: ClaimState, arbiter_result: ArbiterResult, store:
 
 
 async def report(*, ctx: Context) -> ReportResult:
-    """Render the final report with citations. Writes status to REPORTED."""
+    """Render the final report with citations. Writes status to REPORTED.
+
+    Handles both paths:
+    - Fast path: verdict from fast_check (no arbiter result in state).
+    - Adversarial path: verdict from arbiter (full sub-claim verdicts).
+    """
     raw_state: Any = ctx.state
     state_dict: dict[str, object] = (
         raw_state.to_dict() if hasattr(raw_state, "to_dict") else dict(raw_state)
@@ -199,19 +208,27 @@ async def report(*, ctx: Context) -> ReportResult:
 
     import json
 
+    # Load arbiter result if present (adversarial path). On the fast path, we
+    # synthesize a minimal ArbiterResult from the fast_check verdict.
     arbiter_data = state_dict.get("veritas.arbiter.result")
-    if arbiter_data is None:
-        raise RuntimeError("report: no arbiter result in state")
-    if isinstance(arbiter_data, str):
-        arbiter_data = json.loads(arbiter_data)
-    arbiter_result = ArbiterResult.model_validate(arbiter_data)
+    if arbiter_data is not None:
+        if isinstance(arbiter_data, str):
+            arbiter_data = json.loads(arbiter_data)
+        arbiter_result = ArbiterResult.model_validate(arbiter_data)
+    else:
+        # Fast path: no arbiter. Build a minimal result from the claim verdict.
+        arbiter_result = ArbiterResult(
+            sub_claim_verdicts=[],
+            overall_verdict=claim_state.verdict,
+        )
 
+    # Load fan-out findings if present (adversarial path).
+    findings: list[AgentFinding] = []
     fanout_data = state_dict.get(FANOUT_RESULT_STATE_KEY)
-    if fanout_data is None:
-        raise RuntimeError("report: no fan-out result in state")
-    if isinstance(fanout_data, str):
-        fanout_data = json.loads(fanout_data)
-    findings = [AgentFinding.model_validate(f) for f in fanout_data["findings"]]  # type: ignore[index]
+    if fanout_data is not None:
+        if isinstance(fanout_data, str):
+            fanout_data = json.loads(fanout_data)
+        findings = [AgentFinding.model_validate(f) for f in fanout_data["findings"]]  # type: ignore[index]
 
     # Build or load the citation store.
     store = build_citation_store_from_findings(findings)

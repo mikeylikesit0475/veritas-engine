@@ -66,9 +66,8 @@ async def test_adjudicate_endpoint_resumes_claim() -> None:
     class _StubLlm(BaseLlm):
         model: str = "adjudicate-stub"
 
-        def __init__(self, json_response: str, **kwargs: Any) -> None:
+        def __init__(self, **kwargs: Any) -> None:
             super().__init__(model="adjudicate-stub", **kwargs)
-            self._json = json_response
 
         @classmethod
         def supported_models(cls) -> list[str]:
@@ -77,9 +76,21 @@ async def test_adjudicate_endpoint_resumes_claim() -> None:
         async def generate_content_async(
             self, llm_request: LlmRequest, stream: bool = False
         ) -> Any:
+            prompt = ""
+            for content in llm_request.contents:
+                if content and content.parts:
+                    for part in content.parts:
+                        if part.text and not part.thought:
+                            prompt += part.text
+            if "triage classifier" in prompt.lower():
+                text = '{"path": "fast", "reason": "simple"}'
+            elif "fact-checker" in prompt.lower():
+                text = '{"label":"false","confidence":0.95,"rationale":"test"}'
+            else:
+                text = "{}"
             content = genai_types.Content(
                 role="model",
-                parts=[genai_types.Part.from_text(text=self._json)],
+                parts=[genai_types.Part.from_text(text=text)],
             )
             yield LlmResponse(content=content, turn_complete=True)
 
@@ -90,10 +101,8 @@ async def test_adjudicate_endpoint_resumes_claim() -> None:
             [SearchHit(url="https://x.com", title="X", snippet="snip")]
         ),
         fetch_backend=None,
-        fast_check_model=_StubLlm(
-            '{"label":"false","confidence":0.95,"rationale":"test"}'
-        ),
-        use_postgres=False,  # CI: in-memory
+        fast_check_model=_StubLlm(),
+        use_postgres=False,
     )
     client = TestClient(app)
 
@@ -144,9 +153,21 @@ async def test_adjudicate_returns_404_for_unknown_claim() -> None:
         async def generate_content_async(
             self, llm_request: LlmRequest, stream: bool = False
         ) -> Any:
+            prompt = ""
+            for content in llm_request.contents:
+                if content and content.parts:
+                    for part in content.parts:
+                        if part.text and not part.thought:
+                            prompt += part.text
+            if "triage classifier" in prompt.lower():
+                text = '{"path": "fast", "reason": "simple"}'
+            elif "fact-checker" in prompt.lower():
+                text = '{"label":"false","confidence":0.95,"rationale":"test"}'
+            else:
+                text = "{}"
             content = genai_types.Content(
                 role="model",
-                parts=[genai_types.Part.from_text(text="{}")],
+                parts=[genai_types.Part.from_text(text=text)],
             )
             yield LlmResponse(content=content, turn_complete=True)
 

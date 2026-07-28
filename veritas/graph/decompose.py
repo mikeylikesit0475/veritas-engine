@@ -30,6 +30,7 @@ from veritas.graph.claim_state import (
     ClaimStatus,
 )
 from veritas.models import Tier, model_for
+from veritas.utils import strip_markdown_fences
 
 __all__ = [
     "DECOMPOSE_MODEL_STATE_KEY",
@@ -119,7 +120,7 @@ async def _structured_decompose(model: BaseLlm, claim: str) -> DecomposeResult:
     try:
         import json
 
-        parsed = json.loads(raw_text)
+        parsed = json.loads(strip_markdown_fences(raw_text))
         if not isinstance(parsed, dict) or "sub_claims" not in parsed:
             raise ValueError("missing 'sub_claims' key")
         raw_list = parsed["sub_claims"]

@@ -20,13 +20,12 @@ from veritas.tools.backends import FakeSearchBackend, SearchHit
 
 
 class _ServerVerdictStub(BaseLlm):
-    """Stub model returning a fixed JSON verdict, for the server test."""
+    """Stub model returning JSON based on the prompt (like _RouteStubLlm)."""
 
     model: str = "server-verdict-stub"
 
-    def __init__(self, json_response: str, **kwargs: Any) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         super().__init__(model="server-verdict-stub", **kwargs)
-        self._json = json_response
 
     @classmethod
     def supported_models(cls) -> list[str]:
@@ -35,33 +34,44 @@ class _ServerVerdictStub(BaseLlm):
     async def generate_content_async(
         self, llm_request: LlmRequest, stream: bool = False
     ) -> Any:
+        prompt = ""
+        for content in llm_request.contents:
+            if content and content.parts:
+                for part in content.parts:
+                    if part.text and not part.thought:
+                        prompt += part.text
+
+        if "triage classifier" in prompt.lower():
+            text = '{"path": "fast", "reason": "simple claim"}'
+        elif "fact-checker" in prompt.lower():
+            text = '{"label": "false", "confidence": 0.95, "rationale": "Paris."}'
+        elif "arbiter" in prompt.lower():
+            text = '{"sub_claim_verdicts":[],"overall_verdict":{"label":"false","confidence":0.95,"rationale":"Paris."}}'
+        elif "atomic" in prompt.lower():
+            text = '{"sub_claims": ["a","b","c"]}'
+        else:
+            text = "{}"
+
         content = genai_types.Content(
             role="model",
-            parts=[genai_types.Part.from_text(text=self._json)],
+            parts=[genai_types.Part.from_text(text=text)],
         )
         yield LlmResponse(content=content, turn_complete=True)
 
 
-def _client_with_fakes(stub_json: str, hits: list[SearchHit]) -> TestClient:
+def _client_with_fakes(hits: list[SearchHit] | None = None) -> TestClient:
     """Build a server wired to fakes instead of live backends (the test seam)."""
-    fake_search = FakeSearchBackend(hits)
-    fake_model = _ServerVerdictStub(stub_json)
-    # Register fakes at the app level. create_app uses them because we pass them
-    # in as kwargs (so the server doesn't construct live HTTP backends).
     app = create_app(
-        search_backend=fake_search,
+        search_backend=FakeSearchBackend(hits or []),
         fetch_backend=None,  # not exercised in these tests
-        fast_check_model=fake_model,
+        fast_check_model=_ServerVerdictStub(),
         use_postgres=False,  # CI: in-memory sessions
     )
     return TestClient(app)
 
 
 def test_post_claims_returns_claim_id_and_events_url() -> None:
-    client = _client_with_fakes(
-        '{"label":"false","confidence":0.95,"rationale":"Paris."}',
-        [SearchHit(url="https://x.com", title="X", snippet="snip")],
-    )
+    client = _client_with_fakes([SearchHit(url="https://x.com", title="X", snippet="snip")])
 
     resp = client.post("/claims", json={"claim": "The Eiffel Tower is in Berlin."})
 
@@ -75,14 +85,13 @@ def test_sse_stream_emits_verdict_event() -> None:
     # The end-to-end SSE path: POST a claim, then GET the events URL, and parse
     # the SSE stream. The final event is the resolved claim state (verdict).
     client = _client_with_fakes(
-        '{"label":"false","confidence":0.95,"rationale":"Eiffel Tower is in Paris."}',
         [
             SearchHit(
                 url="https://britannica.com/eiffel-tower",
                 title="Eiffel Tower",
                 snippet="The Eiffel Tower is in Paris, France.",
             )
-        ],
+        ]
     )
 
     resp = client.post("/claims", json={"claim": "The Eiffel Tower is in Berlin."})
@@ -113,24 +122,24 @@ def test_sse_stream_emits_verdict_event() -> None:
     payload = json.loads(verdict_event["data"])
     assert payload["verdict"]["label"] == "false"
     assert payload["verdict"]["confidence"] == 0.95
-    assert payload["status"] == "fast_checked"
+    assert payload["status"] == "reported"
 
 
 def test_health_endpoint() -> None:
-    client = _client_with_fakes("{}", [])
+    client = _client_with_fakes([])
     resp = client.get("/health")
     assert resp.status_code == 200
     assert resp.json() == {"status": "ok"}
 
 
 def test_post_claims_rejects_empty_body() -> None:
-    client = _client_with_fakes("{}", [])
+    client = _client_with_fakes([])
     resp = client.post("/claims", json={"claim": ""})
     # Pydantic min_length=1 -> 422.
     assert resp.status_code == 422
 
 
 def test_events_returns_404_for_unknown_claim() -> None:
-    client = _client_with_fakes("{}", [])
+    client = _client_with_fakes([])
     resp = client.get("/claims/nonexistent/events", params={"claim": "x"})
     assert resp.status_code == 404

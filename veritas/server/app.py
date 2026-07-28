@@ -23,6 +23,7 @@ from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
 
 from veritas.backends_registry import clear_backends, register_backends
+from veritas.graph.arbiter import ARBITER_MODEL_STATE_KEY
 from veritas.graph.claim_state import ClaimState
 from veritas.graph.decompose import DECOMPOSE_MODEL_STATE_KEY
 from veritas.graph.fan_out import FANOUT_MODEL_STATE_KEY
@@ -32,6 +33,7 @@ from veritas.graph.hitl import (
     AdjudicationResponse,
     build_adjudication_function_response,
 )
+from veritas.graph.triage import TRIAGE_MODEL_STATE_KEY
 from veritas.graph.wiring import build_graph
 from veritas.models import Tier, model_for
 from veritas.server.backends import HttpFetchBackend, HttpSearchBackend
@@ -141,6 +143,8 @@ def create_app(
             FETCH_BACKEND_STATE_KEY: fetch_backend,
             FAST_CHECK_MODEL_STATE_KEY: resolved_model,
             DECOMPOSE_MODEL_STATE_KEY: resolved_model,  # judgement tier
+            ARBITER_MODEL_STATE_KEY: resolved_model,  # judgement tier
+            TRIAGE_MODEL_STATE_KEY: resolved_model,  # judgement tier
             FANOUT_MODEL_STATE_KEY: model_for(Tier.FANOUT),  # fan-out tier
         },
     )

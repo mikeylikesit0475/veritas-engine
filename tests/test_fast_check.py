@@ -211,12 +211,13 @@ async def test_fast_check_raises_without_claim_in_state() -> None:
 
 
 async def test_graph_runs_intake_then_fast_check_in_order() -> None:
-    # The sprint 0.5 graph: START -> intake -> fast_check. We drive it with the
-    # runner and assert the events we see came from both nodes in order.
-    # This is the ARCH §9 "Graph" test category.
+    # The full graph: START -> intake -> triage -><route> -> fast_check -> report.
+    # We drive it with the runner and assert the events we see came from the
+    # expected nodes in order. This is the ARCH §9 "Graph" test category.
     from google.adk.runners import Runner
     from google.adk.sessions import InMemorySessionService
 
+    from veritas.graph.triage import TRIAGE_MODEL_STATE_KEY
     from veritas.graph.wiring import build_graph
 
     register_backends(
@@ -233,6 +234,9 @@ async def test_graph_runs_intake_then_fast_check_in_order() -> None:
             ),
             FAST_CHECK_MODEL_STATE_KEY: _VerdictStubLlm(
                 '{"label":"false","confidence":0.95,"rationale":"Eiffel Tower is in Paris."}'
+            ),
+            TRIAGE_MODEL_STATE_KEY: _VerdictStubLlm(
+                '{"path":"fast","reason":"simple claim"}'
             ),
         },
     )
@@ -264,18 +268,20 @@ async def test_graph_runs_intake_then_fast_check_in_order() -> None:
     finally:
         clear_backends("veritas")
 
-    # Both nodes ran, in order. ADK may also emit a final root-agent event; we
-    # only assert the two we care about are present and ordered.
+    # The fast path visits intake, triage, fast_check, report in order.
     assert "intake" in node_names_seen
     assert "fast_check" in node_names_seen
     assert node_names_seen.index("intake") < node_names_seen.index("fast_check")
 
-    # And the verdict landed in session state.
+    # The graph runs to report, so the final status is REPORTED (not FAST_CHECKED).
     from veritas.graph.claim_state import ClaimState as CS
+    from veritas.graph.claim_state import ClaimStatus as CS2
 
     final_state = await session_service.get_session(
         app_name="veritas", user_id="test", session_id=session.id
     )
-    claim = CS.from_state(dict(final_state.state) if final_state else {})
-    assert claim.status is ClaimStatus.FAST_CHECKED
+    raw = final_state.state if final_state else {}
+    state_dict = raw.to_dict() if hasattr(raw, "to_dict") else dict(raw)
+    claim = CS.from_state(state_dict)
+    assert claim.status is CS2.REPORTED
     assert claim.verdict.label is VerdictLabel.FALSE
