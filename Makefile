@@ -1,6 +1,6 @@
 # Veritas Engine — make targets. Thin wrappers around uv; no hidden logic.
 
-.PHONY: sync lint fmt typecheck test test-strict record clean
+.PHONY: sync lint fmt typecheck test test-strict record eval clean
 
 # uv-managed venv. .venv is created in the project root by default.
 UV ?= uv
@@ -26,6 +26,9 @@ record: ## Record an eval fixture: make record CLAIM="..." NAME="fixture_name"
 	@test -n "$(CLAIM)" || (echo "usage: make record CLAIM=\"...\" NAME=\"name\""; exit 2)
 	@test -n "$(NAME)" || (echo "usage: make record CLAIM=\"...\" NAME=\"name\""; exit 2)
 	VERITAS_RECORD=1 $(UV) run python -m veritas.eval_harness.record "$(CLAIM)" --name $(NAME)
+
+eval: ## Run the eval (live; requires Ollama or Gemini) — prints the table
+	$(UV) run python -m evals.run_eval
 
 clean: ## Remove build/test caches
 	rm -rf .pytest_cache .ruff_cache .mypy_cache build dist *.egg-info
