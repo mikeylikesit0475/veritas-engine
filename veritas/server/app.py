@@ -28,6 +28,8 @@ from sse_starlette.sse import EventSourceResponse
 
 from veritas.backends_registry import clear_backends, register_backends
 from veritas.graph.claim_state import ClaimState
+from veritas.graph.decompose import DECOMPOSE_MODEL_STATE_KEY
+from veritas.graph.fan_out import FANOUT_MODEL_STATE_KEY
 from veritas.graph.fast_check import FAST_CHECK_MODEL_STATE_KEY
 from veritas.graph.wiring import build_graph
 from veritas.models import Tier, model_for
@@ -113,6 +115,8 @@ def create_app(
             SEARCH_BACKEND_STATE_KEY: search_backend,
             FETCH_BACKEND_STATE_KEY: fetch_backend,
             FAST_CHECK_MODEL_STATE_KEY: resolved_model,
+            DECOMPOSE_MODEL_STATE_KEY: resolved_model,  # judgement tier
+            FANOUT_MODEL_STATE_KEY: model_for(Tier.FANOUT),  # fan-out tier
         },
     )
 
