@@ -1,6 +1,6 @@
 # Veritas Engine — make targets. Thin wrappers around uv; no hidden logic.
 
-.PHONY: sync lint fmt typecheck test test-strict record eval clean
+.PHONY: sync lint fmt typecheck test test-strict record eval calibration clean
 
 # uv-managed venv. .venv is created in the project root by default.
 UV ?= uv
@@ -29,6 +29,9 @@ record: ## Record an eval fixture: make record CLAIM="..." NAME="fixture_name"
 
 eval: ## Run the eval (live; requires Ollama or Gemini) — prints the table
 	$(UV) run python -m evals.run_eval
+
+calibration: ## Render the calibration plot from the last eval run
+	$(UV) run python -m evals.calibration_plot
 
 clean: ## Remove build/test caches
 	rm -rf .pytest_cache .ruff_cache .mypy_cache build dist *.egg-info

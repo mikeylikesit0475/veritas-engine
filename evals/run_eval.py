@@ -30,7 +30,7 @@ __all__ = ["main", "run_eval"]
 
 def _load_benchmark() -> list[dict[str, str]]:
     """Load the benchmark slice from evals/data/benchmark.json."""
-    path = Path(__file__).resolve().parent.parent / "data" / "benchmark.json"
+    path = Path(__file__).resolve().parent / "data" / "benchmark.json"
     data = json.loads(path.read_text(encoding="utf-8"))
     return data["claims"]
 
@@ -282,7 +282,7 @@ def main() -> int:
     metrics = asyncio.run(run_eval())
     _print_table(metrics)
 
-    # Save the results for CI.
+    # Save the results for CI + the calibration plot.
     out_path = Path(__file__).resolve().parent.parent / "eval_results.json"
     data = {
         "veritas": {
@@ -301,9 +301,42 @@ def main() -> int:
             "avg_wall_clock": metrics["baseline"].avg_wall_clock,
             "n_claims": metrics["baseline"].n_claims,
         },
+        # Per-claim results for the calibration plot.
+        "veritas_per_claim": [
+            {
+                "claim_id": r.claim_id,
+                "true_label": r.true_label,
+                "predicted_label": r.predicted_label,
+                "confidence": r.confidence,
+                "correct": r.correct,
+                "path": r.path,
+            }
+            for r in metrics["veritas"].results
+        ],
+        "baseline_per_claim": [
+            {
+                "claim_id": r.claim_id,
+                "true_label": r.true_label,
+                "predicted_label": r.predicted_label,
+                "confidence": r.confidence,
+                "correct": r.correct,
+            }
+            for r in metrics["baseline"].results
+        ],
     }
     out_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
     print(f"  Results saved to {out_path}")
+
+    # Render the calibration plot.
+    from evals.calibration_plot import render_calibration_plot
+
+    v_per = data["veritas_per_claim"]
+    plot_path = render_calibration_plot(
+        correct=[r["correct"] for r in v_per],
+        confidences=[r["confidence"] for r in v_per],
+        name="Veritas",
+    )
+    print(f"  Calibration plot saved to {plot_path}")
     return 0
 
 

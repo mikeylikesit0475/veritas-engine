@@ -13,6 +13,7 @@ dependencies = [
     "fastapi>=0.140.13",
     "google-adk[extensions]>=2.5.0,<3",
     "httpx>=0.28.1",
+    "matplotlib>=3.11.1",
     "uvicorn[standard]>=0.51.0",
 ]
 
