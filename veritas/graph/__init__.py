@@ -11,27 +11,36 @@ and ``report``.
 
 from __future__ import annotations
 
+from veritas.graph.arbiter import ArbiterResult, SubClaimVerdict, arbiter
 from veritas.graph.claim_state import ClaimState, ClaimStatus, Verdict, VerdictLabel
 from veritas.graph.decompose import DecomposeResult, SubClaim, decompose
 from veritas.graph.fan_out import AgentFinding, FanOutResult, fan_out
 from veritas.graph.fast_check import FastCheckResult, fast_check
 from veritas.graph.intake import IntakeResult, intake
+from veritas.graph.loop import ConfidenceRoute, LoopDirective, confidence_route, loop
 from veritas.graph.wiring import build_graph
 
 __all__ = [
     "AgentFinding",
+    "ArbiterResult",
     "ClaimState",
     "ClaimStatus",
+    "ConfidenceRoute",
     "DecomposeResult",
     "FanOutResult",
     "FastCheckResult",
     "IntakeResult",
+    "LoopDirective",
     "SubClaim",
+    "SubClaimVerdict",
     "Verdict",
     "VerdictLabel",
+    "arbiter",
     "build_graph",
+    "confidence_route",
     "decompose",
     "fan_out",
     "fast_check",
     "intake",
+    "loop",
 ]
