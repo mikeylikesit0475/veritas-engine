@@ -45,6 +45,8 @@
   <div class="left">
     <div class="input-bar">
       <input id="claimInput" type="text" placeholder="Paste a claim to fact-check..." />
+      <select id="judgementModel" style="padding: 8px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; font-size: 12px; max-width: 160px;" title="Judgement model"></select>
+      <select id="fanoutModel" style="padding: 8px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; font-size: 12px; max-width: 160px;" title="Fan-out model"></select>
       <button id="submitBtn" onclick="submitClaim()">Check</button>
     </div>
     <svg id="graph" viewBox="0 0 800 600"></svg>
@@ -219,6 +221,56 @@ document.getElementById('claimInput').addEventListener('keydown', (e) => {
 
 // Initial render
 renderGraph();
+
+// --- Model selector ---
+async function loadModels() {
+  try {
+    const resp = await fetch('/models');
+    const data = await resp.json();
+    const jSel = document.getElementById('judgementModel');
+    const fSel = document.getElementById('fanoutModel');
+
+    jSel.innerHTML = '';
+    fSel.innerHTML = '';
+    data.models.forEach(m => {
+      const opt1 = document.createElement('option');
+      opt1.value = m.name;
+      opt1.textContent = `${m.label} [${m.tier}]`;
+      jSel.appendChild(opt1);
+      const opt2 = opt1.cloneNode(true);
+      fSel.appendChild(opt2);
+    });
+
+    // Set current selection if available
+    if (data.current && data.current.judgement) {
+      const j = data.current.judgement === 'ollama:default' ? data.models[0]?.name : data.current.judgement;
+      if (j) jSel.value = j;
+    }
+    if (data.current && data.current.fanout) {
+      const f = data.current.fanout === 'ollama:default' ? data.models[0]?.name : data.current.fanout;
+      if (f) fSel.value = f;
+    }
+
+    // Save selection on change
+    jSel.onchange = () => selectModel(jSel.value, null);
+    fSel.onchange = () => selectModel(null, fSel.value);
+  } catch (e) {
+    console.log('Could not load models:', e);
+  }
+}
+
+async function selectModel(judgement, fanout) {
+  try {
+    const params = new URLSearchParams();
+    if (judgement) params.set('judgement_model', judgement);
+    if (fanout) params.set('fanout_model', fanout);
+    await fetch('/models/select?' + params.toString(), { method: 'POST' });
+  } catch (e) {
+    console.log('Could not select model:', e);
+  }
+}
+
+loadModels();
 </script>
 </body>
 </html>

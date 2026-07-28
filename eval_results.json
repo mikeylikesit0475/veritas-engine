@@ -1,0 +1,622 @@
+{
+  "veritas": {
+    "accuracy": 0.9,
+    "brier": 0.18182000000000004,
+    "ece": 0.10200000000000024,
+    "avg_tokens": 10.325,
+    "avg_wall_clock": 13.52877525327276,
+    "n_claims": 40
+  },
+  "baseline": {
+    "accuracy": 0.925,
+    "brier": 0.13330500000000003,
+    "ece": 0.06499999999999995,
+    "avg_tokens": 22.65,
+    "avg_wall_clock": 3.7242781219742027,
+    "n_claims": 40
+  },
+  "veritas_per_claim": [
+    {
+      "claim_id": "c001",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c002",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c003",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c004",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c005",
+      "true_label": "true",
+      "predicted_label": "mixed",
+      "confidence": 0.85,
+      "correct": false,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c006",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c007",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c008",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c009",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 0.95,
+      "correct": true,
+      "path": "adversarial"
+    },
+    {
+      "claim_id": "c010",
+      "true_label": "mixed",
+      "predicted_label": "mixed",
+      "confidence": 0.7,
+      "correct": true,
+      "path": "adversarial"
+    },
+    {
+      "claim_id": "c011",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c012",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c013",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 0.95,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c014",
+      "true_label": "mixed",
+      "predicted_label": "mixed",
+      "confidence": 0.6,
+      "correct": true,
+      "path": "adversarial"
+    },
+    {
+      "claim_id": "c015",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c016",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c017",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c018",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c019",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c020",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c021",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c022",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c023",
+      "true_label": "true",
+      "predicted_label": "mixed",
+      "confidence": 0.9,
+      "correct": false,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c024",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c025",
+      "true_label": "true",
+      "predicted_label": "mixed",
+      "confidence": 0.85,
+      "correct": false,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c026",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c027",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c028",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 0.95,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c029",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c030",
+      "true_label": "mixed",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": false,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c031",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c032",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c033",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c034",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c035",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c036",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c037",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 0.95,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c038",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 0.99,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c039",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true,
+      "path": "fast"
+    },
+    {
+      "claim_id": "c040",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 0.99,
+      "correct": true,
+      "path": "fast"
+    }
+  ],
+  "baseline_per_claim": [
+    {
+      "claim_id": "c001",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c002",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c003",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c004",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c005",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 0.99,
+      "correct": true
+    },
+    {
+      "claim_id": "c006",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c007",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c008",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c009",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 0.99,
+      "correct": true
+    },
+    {
+      "claim_id": "c010",
+      "true_label": "mixed",
+      "predicted_label": "true",
+      "confidence": 0.85,
+      "correct": false
+    },
+    {
+      "claim_id": "c011",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c012",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c013",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 0.95,
+      "correct": true
+    },
+    {
+      "claim_id": "c014",
+      "true_label": "mixed",
+      "predicted_label": "false",
+      "confidence": 0.92,
+      "correct": false
+    },
+    {
+      "claim_id": "c015",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c016",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c017",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c018",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c019",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c020",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c021",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c022",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c023",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c024",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c025",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 0.98,
+      "correct": true
+    },
+    {
+      "claim_id": "c026",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c027",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c028",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 0.99,
+      "correct": true
+    },
+    {
+      "claim_id": "c029",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c030",
+      "true_label": "mixed",
+      "predicted_label": "true",
+      "confidence": 0.99,
+      "correct": false
+    },
+    {
+      "claim_id": "c031",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c032",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c033",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c034",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c035",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c036",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c037",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 0.95,
+      "correct": true
+    },
+    {
+      "claim_id": "c038",
+      "true_label": "false",
+      "predicted_label": "false",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c039",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "claim_id": "c040",
+      "true_label": "true",
+      "predicted_label": "true",
+      "confidence": 0.99,
+      "correct": true
+    }
+  ]
+}

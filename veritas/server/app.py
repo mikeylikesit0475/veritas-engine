@@ -259,6 +259,89 @@ def create_app(
     async def health() -> dict[str, str]:
         return {"status": "ok"}
 
+    @app.get("/models")
+    async def list_models() -> dict[str, object]:
+        """List available models — Ollama models + Gemini if a key is set."""
+        models: list[dict[str, str]] = []
+
+        # Ollama models.
+        try:
+            import httpx
+
+            async with httpx.AsyncClient(timeout=5) as client:
+                resp = await client.get("http://localhost:11434/api/tags")
+                if resp.status_code == 200:
+                    for m in resp.json().get("models", []):
+                        models.append({
+                            "name": m["name"],
+                            "tier": "ollama",
+                            "label": m["name"],
+                        })
+        except Exception:
+            pass
+
+        # Gemini (if key is set).
+        if os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY"):
+            models.append({"name": "gemini-2.5-flash", "tier": "gemini", "label": "gemini-2.5-flash"})
+            models.append({"name": "gemini-2.5-pro", "tier": "gemini", "label": "gemini-2.5-pro"})
+
+        # Currently selected models.
+        from veritas.models import Backend, _env_backend
+        j_backend = _env_backend("VERITAS_JUDGEMENT")
+        f_backend = _env_backend("VERITAS_FANOUT")
+        j_model = os.environ.get("VERITAS_JUDGEMENT_MODEL", "")
+        f_model = os.environ.get("VERITAS_FANOUT_MODEL", "")
+
+        return {
+            "models": models,
+            "current": {
+                "judgement": j_model or ("gemini-2.5-flash" if j_backend is Backend.GEMINI else "ollama:default"),
+                "fanout": f_model or ("gemini-2.5-flash" if f_backend is Backend.GEMINI else "ollama:default"),
+            },
+        }
+
+    @app.post("/models/select")
+    async def select_model(
+        judgement_model: str | None = None,
+        fanout_model: str | None = None,
+    ) -> dict[str, str]:
+        """Switch the active models at runtime. Re-registers in the backend registry."""
+        if judgement_model:
+            from google.adk.models.google_llm import Gemini
+            from google.adk.models.lite_llm import LiteLlm
+
+            if judgement_model.startswith("gemini-"):
+                if not (os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")):
+                    raise HTTPException(400, detail="No Gemini API key set")
+                jm: Any = Gemini(model=judgement_model)
+            else:
+                name = judgement_model if judgement_model.startswith("ollama") else f"ollama_chat/{judgement_model}"
+                jm = LiteLlm(model=name)
+            register_backends(
+                "veritas",
+                **{
+                    FAST_CHECK_MODEL_STATE_KEY: jm,
+                    TRIAGE_MODEL_STATE_KEY: jm,
+                    DECOMPOSE_MODEL_STATE_KEY: jm,
+                    ARBITER_MODEL_STATE_KEY: jm,
+                },
+            )
+
+        if fanout_model:
+            from google.adk.models.google_llm import Gemini
+            from google.adk.models.lite_llm import LiteLlm
+
+            if fanout_model.startswith("gemini-"):
+                if not (os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")):
+                    raise HTTPException(400, detail="No Gemini API key set")
+                fm: Any = Gemini(model=fanout_model)
+            else:
+                name = fanout_model if fanout_model.startswith("ollama") else f"ollama_chat/{fanout_model}"
+                fm = LiteLlm(model=name)
+            register_backends("veritas", **{FANOUT_MODEL_STATE_KEY: fm})
+
+        return {"status": "ok", "judgement": judgement_model or "(unchanged)", "fanout": fanout_model or "(unchanged)"}
+
     # Serve the web UI (Sprint 1.6 + 2.6 — evidence panel + live graph).
     from pathlib import Path
 
