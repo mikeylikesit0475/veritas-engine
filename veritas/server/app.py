@@ -255,6 +255,15 @@ def create_app(
     async def health() -> dict[str, str]:
         return {"status": "ok"}
 
+    # Serve the web UI (Sprint 1.6 + 2.6 — evidence panel + live graph).
+    from pathlib import Path
+
+    from fastapi.staticfiles import StaticFiles
+
+    web_dir = Path(__file__).resolve().parents[2] / "web" / "public"
+    if web_dir.exists():
+        app.mount("/ui", StaticFiles(directory=str(web_dir), html=True), name="ui")
+
     return app
 
 

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Veritas Engine — Live Graph</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0d1117; color: #c9d1d9; }
+  .app { display: flex; height: 100vh; }
+  .left { flex: 1; position: relative; border-right: 1px solid #30363d; }
+  .right { width: 420px; overflow-y: auto; padding: 16px; background: #161b22; }
+  .right h2 { font-size: 14px; color: #8b949e; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .input-bar { position: absolute; top: 0; left: 0; right: 0; padding: 12px; background: #161b22; border-bottom: 1px solid #30363d; z-index: 10; display: flex; gap: 8px; }
+  .input-bar input { flex: 1; padding: 8px 12px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; font-size: 14px; }
+  .input-bar button { padding: 8px 16px; background: #238636; border: none; border-radius: 6px; color: #fff; font-weight: 600; cursor: pointer; }
+  .input-bar button:hover { background: #2ea043; }
+  .input-bar button:disabled { background: #21262d; color: #484f58; cursor: not-allowed; }
+  #graph { width: 100%; height: 100%; }
+  .node { fill: #21262d; stroke: #30363d; stroke-width: 2; rx: 8; ry: 8; }
+  .node.active { stroke: #58a6ff; stroke-width: 3; fill: #1c3045; }
+  .node.done { stroke: #238636; fill: #14281e; }
+  .node-text { fill: #c9d1d9; font-size: 12px; text-anchor: middle; }
+  .edge { stroke: #30363d; stroke-width: 2; fill: none; }
+  .edge.active { stroke: #58a6ff; stroke-width: 3; }
+  .evidence-item { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 10px; margin-bottom: 8px; }
+  .evidence-item .label { font-size: 11px; color: #8b949e; text-transform: uppercase; margin-bottom: 4px; }
+  .evidence-item .query { font-family: monospace; color: #79c0ff; font-size: 12px; margin-bottom: 4px; word-break: break-all; }
+  .evidence-item .snippet { font-size: 12px; color: #c9d1d9; line-height: 1.4; }
+  .evidence-item .url { font-size: 11px; color: #58a6ff; text-decoration: none; word-break: break-all; }
+  .verdict-box { background: #0d1117; border: 2px solid #30363d; border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+  .verdict-box .label { font-size: 24px; font-weight: 700; text-transform: uppercase; }
+  .verdict-box.true .label { color: #238636; }
+  .verdict-box.false .label { color: #f85149; }
+  .verdict-box.mixed .label { color: #d29922; }
+  .verdict-box .confidence { font-size: 14px; color: #8b949e; margin-top: 4px; }
+  .verdict-box .rationale { font-size: 12px; color: #c9d1d9; margin-top: 8px; line-height: 1.4; }
+  .status-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .status-badge.fast { background: #1f6feb; color: #fff; }
+  .status-badge.adversarial { background: #8957e5; color: #fff; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="left">
+    <div class="input-bar">
+      <input id="claimInput" type="text" placeholder="Paste a claim to fact-check..." />
+      <button id="submitBtn" onclick="submitClaim()">Check</button>
+    </div>
+    <svg id="graph" viewBox="0 0 800 600"></svg>
+  </div>
+  <div class="right">
+    <h2>Verdict</h2>
+    <div id="verdict"></div>
+    <h2>Evidence Panel</h2>
+    <div id="evidence"></div>
+  </div>
+</div>
+
+<script>
+// --- Graph layout (ARCH §3, 13 nodes) ---
+const NODES = [
+  { id: 'intake', label: 'intake', x: 80, y: 80 },
+  { id: 'triage', label: 'triage', x: 80, y: 170 },
+  { id: 'fast_check', label: 'fast_check', x: 300, y: 170 },
+  { id: 'decompose', label: 'decompose', x: 80, y: 280 },
+  { id: 'fan_out', label: 'fan_out', x: 80, y: 380 },
+  { id: 'arbiter', label: 'arbiter', x: 80, y: 470 },
+  { id: 'confidence_route', label: 'conf_route', x: 80, y: 540 },
+  { id: 'loop', label: 'loop', x: 300, y: 540 },
+  { id: 'hitl', label: 'hitl', x: 500, y: 540 },
+  { id: 'report', label: 'report', x: 300, y: 470 },
+];
+const EDGES = [
+  ['intake', 'triage'],
+  ['triage', 'fast_check'],
+  ['triage', 'decompose'],
+  ['decompose', 'fan_out'],
+  ['fan_out', 'arbiter'],
+  ['arbiter', 'confidence_route'],
+  ['confidence_route', 'report'],
+  ['confidence_route', 'loop'],
+  ['confidence_route', 'hitl'],
+  ['loop', 'fan_out'],
+  ['fast_check', 'report'],
+];
+
+const nodeStates = {};
+NODES.forEach(n => nodeStates[n.id] = 'idle');
+
+function renderGraph() {
+  const svg = document.getElementById('graph');
+  let html = '';
+  // Edges
+  EDGES.forEach(([from, to]) => {
+    const f = NODES.find(n => n.id === from);
+    const t = NODES.find(n => n.id === to);
+    const active = nodeStates[from] === 'active' || nodeStates[from] === 'done';
+    html += `<line class="edge ${active ? 'active' : ''}" x1="${f.x}" y1="${f.y}" x2="${t.x}" y2="${t.y}" />`;
+  });
+  // Nodes
+  NODES.forEach(n => {
+    const cls = nodeStates[n.id] || 'idle';
+    html += `<rect class="node ${cls}" x="${n.x - 50}" y="${n.y - 18}" width="100" height="36" />`;
+    html += `<text class="node-text" x="${n.x}" y="${n.y + 4}">${n.label}</text>`;
+  });
+  svg.innerHTML = html;
+}
+
+function setNodeActive(name) {
+  if (nodeStates[name] !== undefined) {
+    // Mark previous as done
+    for (const k in nodeStates) {
+      if (nodeStates[k] === 'active') nodeStates[k] = 'done';
+    }
+    nodeStates[name] = 'active';
+    renderGraph();
+  }
+}
+
+function resetGraph() {
+  for (const k in nodeStates) nodeStates[k] = 'idle';
+  renderGraph();
+}
+
+// --- SSE handling ---
+let currentClaimId = null;
+
+async function submitClaim() {
+  const input = document.getElementById('claimInput');
+  const btn = document.getElementById('submitBtn');
+  const claim = input.value.trim();
+  if (!claim) return;
+  btn.disabled = true;
+  btn.textContent = 'Running...';
+  resetGraph();
+  document.getElementById('verdict').innerHTML = '';
+  document.getElementById('evidence').innerHTML = '';
+
+  try {
+    const resp = await fetch('/claims', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ claim }),
+    });
+    const data = await resp.json();
+    currentClaimId = data.claim_id;
+    streamEvents(data.events_url, claim);
+  } catch (e) {
+    document.getElementById('verdict').innerHTML = `<div class="verdict-box"><div class="label">ERROR</div><div class="rationale">${e.message}</div></div>`;
+    btn.disabled = false;
+    btn.textContent = 'Check';
+  }
+}
+
+function streamEvents(eventsUrl, claim) {
+  const url = `${eventsUrl}?claim=${encodeURIComponent(claim)}`;
+  const evtSource = new EventSource(url);
+  const evidence = document.getElementById('evidence');
+  const btn = document.getElementById('submitBtn');
+
+  evtSource.addEventListener('intake', (e) => setNodeActive('intake'));
+  evtSource.addEventListener('triage', (e) => setNodeActive('triage'));
+  evtSource.addEventListener('fast_check', (e) => setNodeActive('fast_check'));
+  evtSource.addEventListener('decompose', (e) => setNodeActive('decompose'));
+  evtSource.addEventListener('fan_out', (e) => setNodeActive('fan_out'));
+  evtSource.addEventListener('arbiter', (e) => setNodeActive('arbiter'));
+  evtSource.addEventListener('confidence_route', (e) => setNodeActive('confidence_route'));
+  evtSource.addEventListener('loop', (e) => setNodeActive('loop'));
+  evtSource.addEventListener('hitl', (e) => setNodeActive('hitl'));
+  evtSource.addEventListener('report', (e) => setNodeActive('report'));
+
+  evtSource.addEventListener('verdict', (e) => {
+    const state = JSON.parse(e.data);
+    const label = state.verdict.label;
+    const conf = (state.verdict.confidence * 100).toFixed(0);
+    const box = document.getElementById('verdict');
+    box.innerHTML = `<div class="verdict-box ${label}">
+      <div class="label">${label}</div>
+      <div class="confidence">${conf}% confidence</div>
+      <div class="rationale">${state.verdict.rationale || ''}</div>
+    </div>`;
+    // Show path badge
+    if (state.status === 'fast_checked' || state.status === 'reported') {
+      const triage = state.verdict;
+      // Add evidence from search queries if present
+    }
+    btn.disabled = false;
+    btn.textContent = 'Check';
+    evtSource.close();
+  });
+
+  // Generic event for node events (non-verdict)
+  evtSource.onmessage = (e) => {
+    try {
+      const data = JSON.parse(e.data);
+      if (data.node) setNodeActive(data.node);
+      // If text contains search query info, add to evidence panel
+      if (data.text && data.text.includes('query')) {
+        const item = document.createElement('div');
+        item.className = 'evidence-item';
+        item.innerHTML = `<div class="label">Search</div><div class="query">${data.text}</div>`;
+        evidence.appendChild(item);
+      }
+    } catch (err) { /* not JSON, skip */ }
+  };
+
+  evtSource.onerror = () => {
+    btn.disabled = false;
+    btn.textContent = 'Check';
+    evtSource.close();
+  };
+}
+
+// Enter key submits
+document.getElementById('claimInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') submitClaim();
+});
+
+// Initial render
+renderGraph();
+</script>
+</body>
+</html>

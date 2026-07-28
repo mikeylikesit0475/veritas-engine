@@ -1,0 +1,39 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - VERITAS_DB_URL=postgresql+asyncpg://veritas:veritas@postgres:5432/veritas
+      - VERITAS_FANOUT=ollama
+      - VERITAS_JUDGEMENT=ollama
+      - OLLAMA_HOST=${OLLAMA_HOST:-http://host.docker.internal:11434}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=veritas
+      - POSTGRES_USER=veritas
+      - POSTGRES_PASSWORD=veritas
+    ports:
+      - "5433:5432"
+    volumes:
+      - veritas-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U veritas -d veritas"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  veritas-pg:
