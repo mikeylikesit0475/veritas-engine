@@ -52,6 +52,7 @@ def _client_with_fakes(stub_json: str, hits: list[SearchHit]) -> TestClient:
         search_backend=fake_search,
         fetch_backend=None,  # not exercised in these tests
         fast_check_model=fake_model,
+        use_postgres=False,  # CI: in-memory sessions
     )
     return TestClient(app)
 

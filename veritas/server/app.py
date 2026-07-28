@@ -1,27 +1,23 @@
 """Veritas FastAPI server.
 
-Sprint 0.5: ``POST /claims`` accepts a claim, ``GET /claims/{id}/events`` streams
-the graph's events as SSE. The server is thin — it wires backends into session state
-and delegates to the ADK runner. The graph is the same one tests run against fakes.
+Sprint 2.4: ``POST /claims/{id}/adjudicate`` + Postgres-backed sessions.
+The HITL pause survives a restart — the session is in Postgres, not memory.
 
-ADR-009: no external key required for the demo. Backends default to the HTTP
-(DuckDuckGo + httpx) implementations; the model factory defaults to Ollama.
-
-CI never calls a live model (CLAUDE.md #6). The server module is import-safe in CI
-(it doesn't make calls at import time), but it is not exercised by tests with live
-backends — only with injected fakes.
+ADR-008: Postgres, not SQLite. ADR-009: no external key required.
+CLAUDE.md #6: CI never calls a live model.
 """
 
 from __future__ import annotations
 
 import asyncio
 import json
+import os
 from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
 from google.adk.runners import Runner
-from google.adk.sessions import InMemorySessionService
+from google.adk.sessions import BaseSessionService, DatabaseSessionService, InMemorySessionService
 from google.genai import types as genai_types
 from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
@@ -31,6 +27,11 @@ from veritas.graph.claim_state import ClaimState
 from veritas.graph.decompose import DECOMPOSE_MODEL_STATE_KEY
 from veritas.graph.fan_out import FANOUT_MODEL_STATE_KEY
 from veritas.graph.fast_check import FAST_CHECK_MODEL_STATE_KEY
+from veritas.graph.hitl import (
+    AdjudicationRequest,
+    AdjudicationResponse,
+    build_adjudication_function_response,
+)
 from veritas.graph.wiring import build_graph
 from veritas.models import Tier, model_for
 from veritas.server.backends import HttpFetchBackend, HttpSearchBackend
@@ -38,6 +39,12 @@ from veritas.tools.fetch_page import FETCH_BACKEND_STATE_KEY
 from veritas.tools.grounded_search import SEARCH_BACKEND_STATE_KEY
 
 __all__ = ["ClaimRequest", "ClaimResponse", "app", "create_app"]
+
+# Postgres URL for the session service. Default: the local TimescaleDB container.
+# Override with VERITAS_DB_URL. If Postgres is unavailable, falls back to
+# InMemorySessionService (the HITL pause won't survive a restart, but the demo
+# can still run).
+DEFAULT_DB_URL = "postgresql+asyncpg://mycelium:mycelium@localhost:5432/veritas"
 
 
 class ClaimRequest(BaseModel):
@@ -82,6 +89,7 @@ def create_app(
     search_backend: Any | None = None,
     fetch_backend: Any | None = None,
     fast_check_model: Any | None = None,
+    use_postgres: bool | None = None,
 ) -> FastAPI:
     """Build the FastAPI app.
 
@@ -89,10 +97,27 @@ def create_app(
     pass fakes via the kwargs — those are used as-is and not closed (the test owns
     them). This is the test seam; the server design deliberately doesn't hide it
     behind monkeypatching.
+
+    Args:
+        use_postgres: If True, use DatabaseSessionService with the Postgres URL
+            from ``VERITAS_DB_URL`` (default: the local container). If False,
+            use InMemorySessionService. If None (default), try Postgres and
+            fall back to InMemory if unavailable.
     """
-    session_service = InMemorySessionService()  # type: ignore[no-untyped-call]
-    # Sprint 2.4 swaps this for DatabaseSessionService(postgresql+asyncpg://...).
-    # The SessionService interface is the seam (ADR-008).
+    # Sprint 2.4: Postgres-backed sessions for HITL durability (ADR-008).
+    db_url = os.environ.get("VERITAS_DB_URL", DEFAULT_DB_URL)
+    session_service: BaseSessionService
+    if use_postgres is False:
+        session_service = InMemorySessionService()  # type: ignore[no-untyped-call]
+    elif use_postgres is True:
+        session_service = DatabaseSessionService(db_url=db_url)
+    else:
+        # Auto-detect: try Postgres, fall back to InMemory.
+        try:
+            session_service = DatabaseSessionService(db_url=db_url)
+        except Exception:
+            session_service = InMemorySessionService()  # type: ignore[no-untyped-call]
+
     graph = build_graph()
     # One runner for the app; sessions keep per-claim state isolated.
     runner = Runner(
@@ -189,6 +214,38 @@ def create_app(
                 pass
 
         return EventSourceResponse(_gen())
+
+    @app.post("/claims/{claim_id}/adjudicate", response_model=AdjudicationResponse)
+    async def adjudicate(claim_id: str, req: AdjudicationRequest) -> AdjudicationResponse:
+        """Resume a paused claim with a human verdict.
+
+        Sprint 2.4: the HITL pause survives a restart because the session is in
+        Postgres. This endpoint constructs the FunctionResponse that resumes the
+        graph, then runs it to completion (the report node).
+        """
+        session = await session_service.get_session(
+            app_name="veritas", user_id="api", session_id=claim_id
+        )
+        if session is None:
+            raise HTTPException(status_code=404, detail="claim session not found")
+
+        # Build the FunctionResponse that carries the human's verdict.
+        resume_message = build_adjudication_function_response(req)
+
+        # Resume the runner. The graph continues from the HITL pause to the report.
+        try:
+            async for _event in runner.run_async(
+                user_id="api", session_id=claim_id, new_message=resume_message
+            ):
+                pass  # consume events; the graph runs to completion
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"resume failed: {e}") from e
+
+        return AdjudicationResponse(
+            claim_id=claim_id,
+            status="adjudicated",
+            message=f"Claim resumed with verdict={req.verdict}. Graph continued to report.",
+        )
 
     @app.get("/health")
     async def health() -> dict[str, str]:
