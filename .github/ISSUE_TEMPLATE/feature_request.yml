@@ -1,0 +1,8 @@
+name: Feature request
+description: New feature / enhancement
+labels: ["enhancement", "triage"]
+body:
+  - type: textarea
+    id: why
+    attributes: { label: Why is this needed? }
+    validations: { required: true }

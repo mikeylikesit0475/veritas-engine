@@ -1,0 +1,8 @@
+name: Bug report
+description: Something is broken
+labels: ["bug", "triage"]
+body:
+  - type: textarea
+    id: what
+    attributes: { label: What happened? }
+    validations: { required: true }
